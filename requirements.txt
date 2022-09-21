@@ -1,0 +1,17 @@
+# local package
+pyyaml
+opencv-python
+scikit-learn
+torch
+torchvision
+torchaudio
+albumentations
+
+# external requirements
+click
+Sphinx
+coverage
+awscli
+flake8
+python-dotenv>=0.5.1
+

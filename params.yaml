@@ -1,0 +1,40 @@
+unzip_raw:
+  zip_path: 'data/raw'
+  hevc_path: 'data/external/hevc'
+
+change_codec:
+  h264_path: 'data/external/h264'
+
+split_2m:
+  vids_2m_path: 'data/interim/videos'
+
+make_frames:
+  labels_path: 'data/interim/labels'
+  frames_path: 'data/processed/frames'
+
+make_masks:
+  masks_path: 'data/processed/masks'
+
+split_dataset:
+  test_frames_path: 'data/final/test/frames'
+  test_masks_path: 'data/final/test/masks'
+  train_frames_path: 'data/final/train/frames'
+  train_masks_path: 'data/final/train/masks'
+  valid_frames_path: 'data/final/valid/frames'
+  valid_masks_path: 'data/final/valid/masks'
+  valid_perc: 0.08
+  test_perc: 0.15
+ 
+train_model:
+  in_features: 3
+  out_features: 1
+  learning_rate: 0.001
+  device: 'cpu'
+  pin_memory: True
+  load_model: False
+  batch_size: 5
+  num_epochs: 3
+  num_workers: 2
+  dest_height: 480
+  dest_width: 640
+  checkpoint_path : 'models/model.pth.tar'
