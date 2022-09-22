@@ -5,7 +5,9 @@ scikit-learn
 torch
 torchvision
 torchaudio
+torchmetrics
 albumentations
+matplotlib
 
 # external requirements
 click
