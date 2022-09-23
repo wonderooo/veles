@@ -4,9 +4,13 @@ import torch
 import torchmetrics as tm
 import argparse
 import json
+from src.models.unet_model import UnetModel
+from src.models.dataset import CranesDataset
+from src.models.utils import load_checkpoint
+from torch.utils.data import DataLoader
 
 class EvaluationSession(object):
-    def __init__(self, config_path: str, preds, target) -> None:
+    def __init__(self, config_path: str, mode='train') -> None:
         super(EvaluationSession, self).__init__()
 
         with open(config_path) as config_file:
@@ -21,14 +25,48 @@ class EvaluationSession(object):
         self.preds = preds
         self.target = target
 
+        self.checkpoint = self.config['train_model']['checkpoint_path']
+        self.in_channels = self.config['train_model']['in_features']
+        self.out_channels = self.config['train_model']['out_features']
+        self.dest_height = self.config['train_model']['dest_height']
+        self.dest_width = self.config['train_model']['dest_width']
+        self.model = UnetModel(self.in_channels, self.out_channels)
+        load_checkpoint(torch.load(self.checkpoint), self.model)
+
+        if mode == 'train': 
+            self.frames_path = self.config['split_dataset']['train_frames_path']
+            self.masks_path = self.config['split_dataset']['train_masks_path']
+        elif mode == 'test':
+            self.frames_path = self.config['split_dataset']['test_frames_path']
+            self.masks_path = self.config['split_dataset']['test_masks_path']
+        else:
+            self.frames_path = self.config['split_dataset']['valid_frames_path']
+            self.masks_path = self.config['split_dataset']['valid_masks_path']
+
+        self.preds, self.target = self.__make_preds()
         self.accuracy = self.__accuracy()
         self.precision = self.__precision()
         self.recall = self.__recall()
         self.f1 = self.__f1()
         self.jaccard = self.__jaccard()
         self.__roc_curve()
-        self.__precision_recall_curve()
+        #self.__precision_recall_curve()
         self.__confusion_matrix()
+    
+    def __make_preds(self):
+        self.model.to(self.config['train_model']['device']).eval()
+        ds = CranesDataset(self.frames_path, self.masks_path, self.dest_height, self.dest_width)
+        loader = DataLoader(ds, 10000, False)
+        for data, target in loader:
+            data.to(self.config['train_model']['device'])
+
+            with torch.no_grad():
+                pred = self.model(data)
+                normalized = torch.sigmoid(pred)
+                binary = (normalized > self.threshold).float()
+                squeezed = torch.squeeze(binary)
+
+        return squeezed.type(torch.uint8), target.type(torch.uint8)
 
     def __accuracy(self):
         """
@@ -89,32 +127,46 @@ class EvaluationSession(object):
                     json.dump({'roc': timeline}, f)
         
     def __precision_recall_curve(self):
+        #todo: precision recall curve
         """  
             precision to recall curve
         """
         prc = tm.PrecisionRecallCurve()
         timeline = []
-        print(prc(self.preds, self.target))
-        for precison, recall, thresh in prc(self.preds, self.target):
-            timeline.append({'precision': float(precison), 'recall': float(recall), 'threshold': float(thresh)})
-        with open(os.path.join(self.plots_path, 'prc.json'), 'w') as f:
-                    json.dump({'prc': timeline}, f)
+        #print(prc(self.preds, self.target))
+        #for precison, recall, thresh in prc(self.preds, self.target):
+        #    timeline.append({'precision': float(precison), 'recall': float(recall), 'threshold': float(thresh)})
+        #with open(os.path.join(self.plots_path, 'prc.json'), 'w') as f:
+        #            json.dump({'prc': timeline}, f)
 
     def __confusion_matrix(self):
         cm_fn = tm.ConfusionMatrix(num_classes=2)
         cm = cm_fn(self.preds, self.target)
-        print(cm)
+        tp = cm[0][0]
+        fn = cm[0][1]
+        fp = cm[1][0]
+        tn = cm[1][1]
+
+        timeline = []
+        [timeline.append({'actual': 1, 'predicted': 1}) for _ in range(tp)]
+        [timeline.append({'actual': 1, 'predicted': 0}) for _ in range(fn)]
+        [timeline.append({'actual': 0, 'predicted': 1}) for _ in range(fp)]
+        [timeline.append({'actual': 0, 'predicted': 0}) for _ in range(tn)]
+
+        with open(os.path.join(self.plots_path, 'confusion_matrix.json'), 'w') as f:
+            json.dump(timeline, f)
         
 
 if __name__ == '__main__':
     args_parser = argparse.ArgumentParser()
     args_parser.add_argument('--config', dest='config', required=True)
+    args_parser.add_argument('--mode', dest='mode')
     args = args_parser.parse_args()
 
     preds = torch.randint(2, (1,100,100))
     target = torch.randint(2, (1,100,100))
 
-    es = EvaluationSession(args.config, preds, target)
+    es = EvaluationSession(args.config, args.mode)
     """
     print('accuracy: '+str(es.accuracy))
     print('precision: '+ str(es.precision))
