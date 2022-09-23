@@ -51,18 +51,20 @@ class EvaluationSession(object):
         self.recall = self.__recall()
         self.f1 = self.__f1()
         self.jaccard = self.__jaccard()
-        self.__roc_curve()
+        #self.__roc_curve()
         #self.__precision_recall_curve()
-        self.__confusion_matrix()
+        #self.__confusion_matrix()
     
     def __make_preds(self):
         self.model.eval()
         ds = CranesDataset(self.frames_path, self.masks_path, self.dest_height, self.dest_width)
         loader = DataLoader(ds, 1, False)
 
-        empty = torch.empty((1, 480, 640), dtype=torch.float).to(self.device)
+        empty_data = torch.empty((1, 480, 640), dtype=torch.float).to(self.device)
+        empty_target = torch.empty((1, 480, 640), dtype=torch.float).to(self.device)
         for data, target in loader:
             data = data.to(self.device)
+            target = target.to(self.device)
 
             with torch.no_grad():
                 pred = self.model(data)
@@ -70,9 +72,11 @@ class EvaluationSession(object):
                 binary = (normalized > self.threshold).float()
                 squeezed = torch.squeeze(binary)
                 squeezed = squeezed.expand(1, -1, -1)
-                torch.cat((empty, squeezed))
+                torch.cat((empty_data, squeezed))
+                torch.cat((empty_target, target))
 
-        return empty.type(torch.uint8), target.type(torch.uint8)
+        print(empty_data.shape, empty_target.shape)
+        return empty_data.type(torch.uint8), empty_target.type(torch.uint8)
 
     def __accuracy(self):
         """
