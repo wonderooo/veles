@@ -30,7 +30,9 @@ class EvaluationSession(object):
         self.out_channels = self.config['train_model']['out_features']
         self.dest_height = self.config['train_model']['dest_height']
         self.dest_width = self.config['train_model']['dest_width']
-        self.model = UnetModel(self.in_channels, self.out_channels)
+
+        self.device = self.config['train_model']['device']
+        self.model = UnetModel(self.in_channels, self.out_channels).to(self.device)
         load_checkpoint(torch.load(self.checkpoint), self.model)
 
         if mode == 'train': 
@@ -54,11 +56,11 @@ class EvaluationSession(object):
         self.__confusion_matrix()
     
     def __make_preds(self):
-        self.model.to(self.config['train_model']['device']).eval()
+        self.model.eval()
         ds = CranesDataset(self.frames_path, self.masks_path, self.dest_height, self.dest_width)
         loader = DataLoader(ds, 10000, False)
         for data, target in loader:
-            data.to(self.config['train_model']['device'])
+            data = data.to(self.device)
 
             with torch.no_grad():
                 pred = self.model(data)
