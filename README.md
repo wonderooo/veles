@@ -1,7 +1,11 @@
 veles-remake
 ==============================
 
-cranes segmentation
+1. na ten moment co najwazniejsze, to plik src/models/predict.py, tam jest klasa Predict, ktora sie inicjuje podajac sciezke do pliku params.yaml, a pobrany checkpoint musi byc w folderze models (bez rozpakowywania)
+2. potem callujac instancje Predict dajemy mu tensor 3, H, W
+3. w params.yaml trzeba zmienic device na jaki sie ma cpu czy cuda
+4. call do tej instancji zwroci nam (batch, 1, H, W)
+
 
 Project Organization
 ------------
