@@ -78,7 +78,7 @@ class EvaluationSession(object):
         """
             correct pixels over total number of pixels
         """
-        accuracy_fn = tm.Accuracy(num_classes=2, average='weighted', mdmc_average='global')
+        accuracy_fn = tm.Accuracy(num_classes=2, average='weighted', mdmc_average='global').to(self.device)
         accuracy = accuracy_fn(self.preds, self.target)
         with open(os.path.join(self.metrics_path, 'accuracy.json'), 'w') as f:
             json.dump({'accuracy': float(accuracy)}, f)
@@ -87,7 +87,7 @@ class EvaluationSession(object):
         """
             correct pixels over number of guessed as correct
         """
-        precision_fn = tm.Precision(num_classes=2, average='weighted', mdmc_average='global')
+        precision_fn = tm.Precision(num_classes=2, average='weighted', mdmc_average='global').to(self.device)
         precision = precision_fn(self.preds, self.target)
         with open(os.path.join(self.metrics_path, 'precision.json'), 'w') as f:
                     json.dump({'precision': float(precision)}, f)
@@ -96,7 +96,7 @@ class EvaluationSession(object):
         """
             correct pixels over number of actual correct pixels
         """
-        recall_fn = tm.Recall(num_classes=2, average='weighted', mdmc_average='global')
+        recall_fn = tm.Recall(num_classes=2, average='weighted', mdmc_average='global').to(self.device)
         recall = recall_fn(self.preds, self.target)
         with open(os.path.join(self.metrics_path, 'recall.json'), 'w') as f:
                     json.dump({'recall': float(recall)}, f)
@@ -106,7 +106,7 @@ class EvaluationSession(object):
             f1 score or dice coefficient -
                 harmonic mean over recall and precision
         """
-        f1_fn = tm.F1Score(num_classes=2, average='weighted', mdmc_average='global')
+        f1_fn = tm.F1Score(num_classes=2, average='weighted', mdmc_average='global').to(self.device)
         f1 = f1_fn(self.preds, self.target)
         with open(os.path.join(self.metrics_path, 'f1.json'), 'w') as f:
                     json.dump({'f1': float(f1)}, f)
@@ -115,7 +115,7 @@ class EvaluationSession(object):
         """
             jaccard index or intersection over union (IOU)
         """
-        jaccard_fn = tm.JaccardIndex(num_classes=2, average='weighted')
+        jaccard_fn = tm.JaccardIndex(num_classes=2, average='weighted').to(self.device)
         jaccard = jaccard_fn(self.preds, self.target)
         with open(os.path.join(self.metrics_path, 'jaccard_index.json'), 'w') as f:
                     json.dump({'jaccard_index': float(jaccard)}, f)
@@ -125,7 +125,7 @@ class EvaluationSession(object):
         """
             recall to specifity curve
         """
-        roc = tm.ROC()
+        roc = tm.ROC().to(self.device)
         timeline = []
         for fpr, tpr, thresh in roc(self.preds, self.target):
             timeline.append({'fpr': float(fpr), 'tpr': float(tpr), 'threshold': float(thresh)})
@@ -137,7 +137,7 @@ class EvaluationSession(object):
         """  
             precision to recall curve
         """
-        prc = tm.PrecisionRecallCurve()
+        prc = tm.PrecisionRecallCurve().to(self.device)
         timeline = []
         #print(prc(self.preds, self.target))
         #for precison, recall, thresh in prc(self.preds, self.target):
@@ -146,7 +146,7 @@ class EvaluationSession(object):
         #            json.dump({'prc': timeline}, f)
 
     def __confusion_matrix(self):
-        cm_fn = tm.ConfusionMatrix(num_classes=2)
+        cm_fn = tm.ConfusionMatrix(num_classes=2).to(self.device)
         cm = cm_fn(self.preds, self.target)
         tp = cm[0][0]
         fn = cm[0][1]
