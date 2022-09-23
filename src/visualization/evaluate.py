@@ -60,7 +60,7 @@ class EvaluationSession(object):
         ds = CranesDataset(self.frames_path, self.masks_path, self.dest_height, self.dest_width)
         loader = DataLoader(ds, 1, False)
 
-        empty = torch.empty((1, 480, 640), dtype=torch.float)
+        empty = torch.empty((1, 480, 640), dtype=torch.float).to(self.device)
         for data, target in loader:
             data = data.to(self.device)
 
