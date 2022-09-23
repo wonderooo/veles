@@ -58,7 +58,9 @@ class EvaluationSession(object):
     def __make_preds(self):
         self.model.eval()
         ds = CranesDataset(self.frames_path, self.masks_path, self.dest_height, self.dest_width)
-        loader = DataLoader(ds, 10000, False)
+        loader = DataLoader(ds, 1, False)
+
+        empty = torch.empty((1, 480, 640), dtype=torch.float)
         for data, target in loader:
             data = data.to(self.device)
 
@@ -67,8 +69,10 @@ class EvaluationSession(object):
                 normalized = torch.sigmoid(pred)
                 binary = (normalized > self.threshold).float()
                 squeezed = torch.squeeze(binary)
+                squeezed = squeezed.expand(1, -1, -1)
+                torch.cat((empty, squeezed))
 
-        return squeezed.type(torch.uint8), target.type(torch.uint8)
+        return empty.type(torch.uint8), target.type(torch.uint8)
 
     def __accuracy(self):
         """
