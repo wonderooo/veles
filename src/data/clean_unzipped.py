@@ -18,7 +18,7 @@ def __clean(config_path: str) -> None:
             vids =list(filter(lambda x: x.endswith(video_extension), \
                 os.listdir(dir_path)))
             [os.rename(os.path.join(dir_path, vid), os.path.join(hevc_path, \
-                str(n)+video_extension)) for n, vid in enumerate(vids)]
+                vid)) for vid in vids]
 
 if __name__ == '__main__':
     args_parser = argparse.ArgumentParser()

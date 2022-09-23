@@ -16,8 +16,9 @@ class CranesDataset(Dataset):
         self.transform = A.Compose(
             [
                 A.Rotate(limit=8, p=0.3),
-                A.CropNonEmptyMaskIfExists(dest_height, dest_width, [0]),
+                A.CropNonEmptyMaskIfExists(int(dest_height*(3/2)), int(dest_width*(3/2)), [0]),
                 A.RandomBrightnessContrast(p=0.2),
+                A.Resize(dest_height, dest_width),
                 A.Normalize(
                     mean=[0.0, 0.0, 0.0],
                     std=[1.0, 1.0, 1.0],

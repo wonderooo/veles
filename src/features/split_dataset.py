@@ -20,11 +20,11 @@ def __split(config_path: str) -> None:
     valid_perc = config['split_dataset']['valid_perc']
     test_perc = config['split_dataset']['test_perc']
 
-    all_frames = list(filter(lambda x: x.endswith('.png'), \
-        os.listdir(frames_path)))
     all_masks = list(filter(lambda x: x.endswith('.png'), \
         os.listdir(masks_path)))
-
+    all_frames = list(filter(lambda x: x in all_masks, \
+        os.listdir(frames_path)))
+    
     frames_train, frames_test, masks_train, masks_test = \
         train_test_split(all_frames, all_masks,
             test_size=test_perc,

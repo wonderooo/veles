@@ -38,3 +38,8 @@ train_model:
   dest_height: 480
   dest_width: 640
   checkpoint_path : 'models/model.pth.tar'
+
+evaluate_model:
+  plots_path: 'reports/figures'
+  metrics_path: 'reports/'
+  threshold: 0.4

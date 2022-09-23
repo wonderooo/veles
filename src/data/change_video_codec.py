@@ -20,7 +20,7 @@ def __recodec(config_path: str) -> None:
         os.listdir(hevc_path))):
 
         in_dir = os.path.join(hevc_path, hevc)
-        out_dir = os.path.join(h264_path, 'h'+hevc)
+        out_dir = os.path.join(h264_path, hevc)
         os.system(cmd.format(in_dir, out_dir))
 
 if __name__ == '__main__':

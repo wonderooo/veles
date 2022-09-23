@@ -23,8 +23,9 @@ def __make_masks(config_path: str) -> None:
             frame = cv2.imread(os.path.join(frames_path, k))
             W, H = frame.shape[1], frame.shape[0]
             blank = np.zeros((H, W))
-            cv2.fillPoly(blank, np.array(v), (255, 255, 255))
-            cv2.imwrite(os.path.join(masks_path, k), blank)
+            for object in v:
+                cv2.fillPoly(blank, np.array([object]), (255, 255, 255))
+                cv2.imwrite(os.path.join(masks_path, k), blank)
 
 def __get_frames_with_polygons(label_path: str) -> dict:
     """
