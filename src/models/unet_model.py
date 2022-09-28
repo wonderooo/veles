@@ -65,11 +65,10 @@ class UnetModel(nn.Module):
         return self.final_conv(x)
 
 def test():
-    x = torch.randn((3, 1, 161, 161))
-    model = UnetModel(in_channels=1, out_channels=1)
+    x = torch.randn((3, 4, 161, 161))
+    model = UnetModel(in_channels=4, out_channels=1)
     preds = model(x)
     print(preds.shape)
-    assert preds.shape == x.shape
 
 if __name__ == "__main__":
     test()
