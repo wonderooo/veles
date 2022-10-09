@@ -2,8 +2,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
+from torchvision.models.segmentation import deeplabv3_resnet101
+from torchvision.models import ResNet101_Weights
 from dataset import CranesDataset
 from unet_model import UnetModel
+from unet3.unet3pp import UNet_3Plus
 import yaml
 import argparse
 import numpy as np
@@ -28,14 +31,24 @@ class TrainingSession(object):
 
         self.in_features: int = self.config['train_model']['in_features']
         self.out_features: int = self.config['train_model']['out_features']
-
+        
+        self.model_arch: str = self.config['train_model']['model_arch']
         self.load_model: bool = self.config['train_model']['load_model']
         self.checkpoint_path: str = self.config['train_model']['checkpoint_path']
-
-        self.model = UnetModel(self.in_features, self.out_features).to(self.device)
+        
+        if self.model_arch == 'unet':
+            self.model = UnetModel(self.in_features, self.out_features).to(self.device)
+        elif self.model_arch == 'unet3pp':
+            self.model = UNet_3Plus().to(self.device)
+        elif self.model_arch == 'deeplabv3':
+            self.model = deeplabv3_resnet101(num_classes=2, \
+                weights_backbone=ResNet101_Weights.IMAGENET1K_V2
+            ).to(self.device)
         utils.load_checkpoint(torch.load(self.checkpoint_path), self.model) \
             if self.load_model else None
-        self.loss_fn = nn.BCEWithLogitsLoss()
+
+        self.loss_fn = nn.BCEWithLogitsLoss() if self.model_arch != 'deeplabv3' \
+                else nn.CrossEntropyLoss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
         self.scaler = torch.cuda.amp.GradScaler()
 
@@ -76,14 +89,21 @@ class TrainingSession(object):
         for data, target in self.train_loader:
             self.model.train()
             data = data.to(self.device)
-            target = target.float().unsqueeze(1).to(self.device)
+            if self.model_arch != 'deeplabv3':
+                target = target.float().unsqueeze(1).to(self.device)
+            else:
+                target = target.long().to(self.device)
 
             """
                 Forward call
             """
             with torch.cuda.amp.autocast():
-                predictions = self.model(data)
+                if self.model_arch != 'deeplabv3':
+                    predictions = self.model(data)
+                else:
+                    predictions = self.model(data)['out']
                 loss = self.loss_fn(predictions, target)
+                print('did loss')
 
             """
                 Backward call
@@ -148,8 +168,4 @@ if __name__ == '__main__':
 
     ts = TrainingSession(args.config)
     print(ts)
-
-
-
-
-
+    ts.train()

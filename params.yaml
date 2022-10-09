@@ -18,21 +18,22 @@ make_masks:
 split_dataset:
   test_frames_path: 'data/final/test/frames'
   test_masks_path: 'data/final/test/masks'
-  train_frames_path: 'data/final/train/frames'
-  train_masks_path: 'data/final/train/masks'
-  valid_frames_path: 'data/final/valid/frames'
-  valid_masks_path: 'data/final/valid/masks'
+  train_frames_path: '../../yolov7-seg/yolov7_d2/datasets/train/images'
+  train_masks_path: '../../yolov7-seg/yolov7_d2/datasets/train/outlined'
+  valid_frames_path: '../../yolov7-seg/yolov7_d2/datasets/val/images'
+  valid_masks_path: '../../yolov7-seg/yolov7_d2/datasets/val/outlined'
   valid_perc: 0.08
   test_perc: 0.15
  
 train_model:
+  model_arch: 'deeplabv3'
   in_features: 3
   out_features: 1
-  learning_rate: 0.001
+  learning_rate: 0.0003
   device: 'cpu'
   pin_memory: True
   load_model: False
-  batch_size: 5
+  batch_size: 2
   num_epochs: 3
   num_workers: 2
   dest_height: 480

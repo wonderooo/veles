@@ -11,13 +11,13 @@ class CranesDataset(Dataset):
 
         self.image_dir = image_dir
         self.mask_dir = mask_dir
-        self.images = list(filter(lambda x: x.endswith('.png'), \
+        self.images = list(filter(lambda x: x.endswith('.png') and not x.endswith('m.png'), \
             os.listdir(image_dir)))
         self.transform = A.Compose(
             [
-                A.Rotate(limit=8, p=0.3),
-                A.CropNonEmptyMaskIfExists(int(dest_height*(3/2)), int(dest_width*(3/2)), [0]),
-                A.RandomBrightnessContrast(p=0.2),
+                #A.Rotate(limit=8, p=0.3),
+                #A.CropNonEmptyMaskIfExists(int(dest_height*(3/2)), int(dest_width*(3/2)), [0]),
+                #A.RandomBrightnessContrast(p=0.2),
                 A.Resize(dest_height, dest_width),
                 A.Normalize(
                     mean=[0.0, 0.0, 0.0],
@@ -36,7 +36,7 @@ class CranesDataset(Dataset):
         mask_path = os.path.join(self.mask_dir, self.images[index])
         image = np.array(Image.open(img_path).convert("RGB"))
         mask = np.array(Image.open(mask_path).convert("L"), dtype=np.float32)
-        mask[mask == 255.0] = 1.0
+        mask[mask != 0.0] = 1.0
 
         if self.transform is not None:
             augmentations = self.transform(image=image, mask=mask)
@@ -44,3 +44,12 @@ class CranesDataset(Dataset):
             mask = augmentations["mask"]
 
         return image, mask
+
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+    ds = CranesDataset('../../../../yolov7-seg/yolov7_d2/datasets/train/images', '../../../../yolov7-seg/yolov7_d2/datasets/train/outlined', 480, 640)
+    i, m = ds.__getitem__(0)
+    plt.imshow(m)
+    plt.show()
+    print(i.shape, m.shape, i.dtype, m.dtype, i.max(), m.max(), m.unique())
+    print(len(ds))

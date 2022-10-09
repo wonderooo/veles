@@ -41,6 +41,9 @@ class UnetModel(nn.Module):
         self.bottleneck = DoubleConv(features[-1], features[-1]*2)
         self.final_conv = nn.Conv2d(features[0], out_channels, kernel_size=1)
 
+    def __repr__(self):
+        return 'Original Unet arch.'
+
     def forward(self, x):
         skip_connections = []
 

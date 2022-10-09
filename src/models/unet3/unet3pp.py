@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from layers import unetConv2
-from init_weights import init_weights
+from src.models.unet3.init_weights import init_weights
+from src.models.unet3.layers import unetConv2
 
 """
     Ref: https://github.com/ZJUGiveLab/UNet-Version/blob/master/models/UNet_3Plus.py
@@ -188,6 +188,9 @@ class UNet_3Plus(nn.Module):
             elif isinstance(m, nn.BatchNorm2d):
                 init_weights(m, init_type='kaiming')
 
+    def __repr__(self):
+        return 'Unet3++ arch.'
+
     def forward(self, inputs):
         ## -------------Encoder-------------
         h1 = self.conv1(inputs)  # h1->320*320*64
@@ -244,3 +247,4 @@ if __name__ == '__main__':
     x = torch.randn((2, 3, 320, 320))
     model = UNet_3Plus()
     out = model(x)
+    print(out.shape, out.dtype, out.min(), out.max())
